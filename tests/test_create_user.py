@@ -9,10 +9,6 @@ def test_create_user_is_saved_to_database():
     # create the test client to send requests without using Playwright and a browser
     client = app.test_client()
 
-    # set up a DB connection
-    connection = DatabaseConnection()
-    connection.connect()
-
     # send the request
     response = client.post(
         "/users/new", data={"username": "testuser", "password": "password123"}

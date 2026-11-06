@@ -1,15 +1,17 @@
-from flask import Flask, redirect, render_template, request
+from flask import Flask, redirect, render_template, request, session
+
 from lib.book import Book
 from lib.book_repository import BookRepository
 from lib.database_connection import DatabaseConnection
 from lib.film import Film
 from lib.film_repository import FilmRepository
+from lib.login_required import login_required
 from lib.user import User
 from lib.user_repository import UserRepository
 
 # instantiate a Flask app object
 app = Flask(__name__)
-
+app.secret_key = "some_really_secret_key"
 
 # Declares a route that listens for a GET request to the path /hello
 # and a method to execute when that request comes in
@@ -36,6 +38,7 @@ def get_all_books():
 
 
 @app.route("/books", methods=["POST"])
+@login_required
 def post_book():
     book_details = request.form
     connection = DatabaseConnection()
@@ -57,6 +60,7 @@ def get_films():
     films = film_repository.all()
     return render_template("films.html", films=films)
 
+
 @app.route("/films/new", methods=["POST"])
 def add_new_film():
     connection = DatabaseConnection()
@@ -68,7 +72,6 @@ def add_new_film():
     film_repository.save(film)
 
     return redirect("/films")
-
 
 
 # Sign up
@@ -88,6 +91,33 @@ def create_user():
     user = User(username=user_details["username"], password=user_details["password"])
     user_repository.create(user)
     return redirect("/")
+
+
+# Login form
+
+
+@app.route("/sessions/new", methods=["GET"])
+def get_login_form():
+    return render_template("login_form.html")
+
+
+@app.route("/sessions", methods=["POST"])
+def login():
+    connection = DatabaseConnection()
+    connection.connect()
+    user_repository = UserRepository(connection)
+
+    username = request.form["username"]
+    password = request.form["password"]
+
+    user = user_repository.find(username)
+
+    if user and user.password == password:
+        session["user_id"] = user.id
+        session["username"] = user.username
+        return redirect("/books")
+    else:
+        return redirect("/sessions/new")
 
 
 # Authors
