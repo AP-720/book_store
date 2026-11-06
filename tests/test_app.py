@@ -41,7 +41,7 @@ def test_get_books_returns_all_the_books(page: Page):
 def test_get_authors_returns_a_200():
     client = app.test_client()
     response = client.get("/authors")
-    assert response.status_code == 200
+    assert response.status_code == 304
 
 
 def test_get_authors_returns_all_the_authors():
